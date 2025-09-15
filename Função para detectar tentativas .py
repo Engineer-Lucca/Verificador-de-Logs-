@@ -1,0 +1,45 @@
+# Função para detectar tentativas de invasão em registros de log
+def detectar_invasao(registros):
+    usuario_atual = None
+    tentativas_consecutivas = 0
+    invasor_detectado = None
+
+    for registro in registros:
+        # Separa o ID do usuário e o status do registro (sucesso ou falha)
+        id_usuario, status = registro.split(":")
+
+        # Verifica se é o mesmo usuário da iteração anterior
+        if id_usuario == usuario_atual:
+            if status == "falha":
+                tentativas_consecutivas += 1
+                # Se atingir mais de 3 falhas consecutivas, identifica invasor
+                if tentativas_consecutivas > 3:
+                    invasor_detectado = id_usuario
+                    break
+            else:
+                # Sucesso zera a contagem
+                tentativas_consecutivas = 0
+        else:
+            # Se mudou de usuário, verifica se o anterior teve mais de 3 falhas consecutivas
+            if tentativas_consecutivas > 3:
+                invasor_detectado = usuario_atual
+                break
+            # Atualiza o usuário atual e reinicia contagem
+            usuario_atual = id_usuario
+            tentativas_consecutivas = 1 if status == "falha" else 0
+
+    # Após o loop, verifica última contagem para o último usuário
+    if not invasor_detectado and tentativas_consecutivas > 3:
+        invasor_detectado = usuario_atual
+
+    return invasor_detectado if invasor_detectado else "Nenhum invasor detectado"
+
+# Função principal para executar o programa
+def main():
+    entrada = input()
+    registros = [registro.strip().strip('"') for registro in entrada.split(",")]
+    resultado = detectar_invasao(registros)
+    print(resultado)
+
+if __name__ == "__main__":
+    main()
